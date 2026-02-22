@@ -1,0 +1,72 @@
+{
+  "name": "@coongro/products",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Módulo genérico de productos: catálogo, categorías, variantes e inventario. Reutilizable por cualquier kit.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./hooks": {
+      "types": "./dist/hooks/index.d.ts",
+      "default": "./dist/hooks/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "default": "./dist/components/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/types/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    }
+  },
+  "files": [
+    "dist",
+    "assets",
+    "drizzle",
+    "coongro.manifest.json"
+  ],
+  "scripts": {
+    "build": "npm run build:css && tsc",
+    "build:css": "tailwindcss -c tailwind.config.cjs -i ./src/styles/tailwind.css -o ./dist/assets/tailwind.css --minify",
+    "dev": "npm run build:css && tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "lint:fix": "eslint src/ --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
+    "quality": "npm run typecheck && npm run lint && npm run format:check",
+    "quality:fix": "npm run lint:fix && npm run format",
+    "sync-version": "node scripts/sync-version.cjs",
+    "version": "npm run sync-version && git add coongro.manifest.json",
+    "prepublishOnly": "npm run quality && npm run build"
+  },
+  "publishConfig": {
+    "registry": "http://localhost:4873/"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "peerDependencies": {
+    "@coongro/plugin-sdk": ">=0.1.0",
+    "@coongro/ui-components": ">=0.12.0"
+  },
+  "devDependencies": {
+    "@coongro/plugin-sdk": "workspace:*",
+    "@coongro/ui-components": "workspace:*",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.0",
+    "prettier": "^3.2.0"
+  }
+}

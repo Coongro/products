@@ -1,0 +1,16 @@
+
+> @coongro/products@1.0.1 build A:\Coongro2\Coongro\plugins\products
+> npm run build:css && tsc
+
+npm warn config ignoring workspace config at A:\Coongro2\Coongro\plugins\products/.npmrc
+
+> @coongro/products@1.0.1 build:css
+> tailwindcss -c tailwind.config.cjs -i ./src/styles/tailwind.css -o ./dist/assets/tailwind.css --minify
+
+Browserslist: caniuse-lite is outdated. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+Rebuilding...
+
+Done in 903ms.

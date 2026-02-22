@@ -1,0 +1,34 @@
+{
+  "id": "products",
+  "version": "0.1.0",
+  "apiVersion": "2.0",
+  "assets": {
+    "styles": [
+      "./dist/assets/tailwind.css"
+    ]
+  },
+  "contributes": {
+    "repositories": [
+      {
+        "module": "./dist/repositories/category.repository.js",
+        "export": "CategoryRepository",
+        "prefix": "products.categories"
+      },
+      {
+        "module": "./dist/repositories/product.repository.js",
+        "export": "ProductRepository",
+        "prefix": "products.items"
+      },
+      {
+        "module": "./dist/repositories/variant.repository.js",
+        "export": "VariantRepository",
+        "prefix": "products.variants"
+      },
+      {
+        "module": "./dist/repositories/stock-movement.repository.js",
+        "export": "StockMovementRepository",
+        "prefix": "products.stock"
+      }
+    ]
+  }
+}
