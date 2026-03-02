@@ -1,6 +1,6 @@
 {
   "name": "@coongro/products",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "Módulo genérico de productos: catálogo, categorías, variantes e inventario. Reutilizable por cualquier kit.",
   "main": "dist/index.js",
@@ -39,34 +39,36 @@
     "dev": "npm run build:css && tsc --watch",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
-    "lint": "eslint src/ --ext .ts,.tsx",
-    "lint:fix": "eslint src/ --ext .ts,.tsx --fix",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
-    "quality": "npm run typecheck && npm run lint && npm run format:check",
-    "quality:fix": "npm run lint:fix && npm run format",
+    "quality": "npm run typecheck && npm run format:check && npm run lint",
+    "quality:fix": "npm run format && npm run lint:fix",
     "sync-version": "node scripts/sync-version.cjs",
     "version": "npm run sync-version && git add coongro.manifest.json",
     "prepublishOnly": "npm run quality && npm run build"
   },
   "publishConfig": {
-    "registry": "http://localhost:4873/"
+    "registry": "https://registry.coongro.com/"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "peerDependencies": {
-    "@coongro/plugin-sdk": ">=0.1.0",
-    "@coongro/ui-components": ">=0.12.0"
+    "@coongro/plugin-sdk": ">=0.14.0",
+    "@coongro/ui-components": ">=0.14.0"
   },
   "devDependencies": {
     "@coongro/plugin-sdk": "workspace:*",
     "@coongro/ui-components": "workspace:*",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
-    "eslint": "^8.57.0",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.0",
-    "prettier": "^3.2.0"
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-sonarjs": "^0.24.0",
+    "prettier": "^3.2.5"
   }
 }

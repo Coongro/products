@@ -79,7 +79,10 @@ export function CategoryPicker(props: CategoryPickerProps) {
   }, [categories]);
 
   // Construir items flat desde tree
-  function flattenTree(nodes: CategoryTreeNode[], depth: number): { id: string; name: string; depth: number }[] {
+  function flattenTree(
+    nodes: CategoryTreeNode[],
+    depth: number
+  ): { id: string; name: string; depth: number }[] {
     const result: { id: string; name: string; depth: number }[] = [];
     for (const node of nodes) {
       result.push({ id: node.id, name: node.name, depth });
@@ -92,7 +95,9 @@ export function CategoryPicker(props: CategoryPickerProps) {
     return React.createElement(UI.Skeleton, { className: 'h-10 w-full rounded-lg' });
   }
 
-  const flatItems = treeMode ? flattenTree(tree, 0) : categories.map((c) => ({ id: c.id, name: c.name, depth: 0 }));
+  const flatItems = treeMode
+    ? flattenTree(tree, 0)
+    : categories.map((c) => ({ id: c.id, name: c.name, depth: 0 }));
 
   return React.createElement(
     React.Fragment,
@@ -139,75 +144,74 @@ export function CategoryPicker(props: CategoryPickerProps) {
 
     // Dialog para crear categoría con padre
     showCreateDialog &&
-      React.createElement(
-        UI.FormDialog,
-        {
-          open: showCreateDialog,
-          onOpenChange: (open: boolean) => {
-            if (!open) {
-              setShowCreateDialog(false);
-              setCreateName('');
-              setCreateParentId(null);
-            }
-          },
-          title: 'Crear categoría',
-          footer: React.createElement(
-            'div',
-            { className: 'flex gap-2 justify-end' },
-            React.createElement(
-              UI.Button,
-              {
-                variant: 'outline',
-                onClick: () => {
-                  setShowCreateDialog(false);
-                  setCreateName('');
-                  setCreateParentId(null);
-                },
+      React.createElement(UI.FormDialog, {
+        open: showCreateDialog,
+        onOpenChange: (open: boolean) => {
+          if (!open) {
+            setShowCreateDialog(false);
+            setCreateName('');
+            setCreateParentId(null);
+          }
+        },
+        title: 'Crear categoría',
+        footer: React.createElement(
+          'div',
+          { className: 'flex gap-2 justify-end' },
+          React.createElement(
+            UI.Button,
+            {
+              variant: 'outline',
+              onClick: () => {
+                setShowCreateDialog(false);
+                setCreateName('');
+                setCreateParentId(null);
               },
-              'Cancelar'
-            ),
-            React.createElement(
-              UI.Button,
-              {
-                disabled: creating,
-                onClick: () => { void handleCreate(); },
-              },
-              creating ? 'Creando...' : 'Crear'
-            )
+            },
+            'Cancelar'
           ),
-          children: React.createElement(
+          React.createElement(
+            UI.Button,
+            {
+              disabled: creating,
+              onClick: () => {
+                void handleCreate();
+              },
+            },
+            creating ? 'Creando...' : 'Crear'
+          )
+        ),
+        children: React.createElement(
+          'div',
+          { className: 'flex flex-col gap-4' },
+          // Nombre
+          React.createElement(
             'div',
-            { className: 'flex flex-col gap-4' },
-            // Nombre
+            { className: 'flex flex-col gap-1.5' },
+            React.createElement(UI.Label, null, 'Nombre'),
+            React.createElement(UI.Input, {
+              value: createName,
+              onChange: (e: { target: { value: string } }) => setCreateName(e.target.value),
+              autoFocus: true,
+            })
+          ),
+          // Padre
+          React.createElement(
+            'div',
+            { className: 'flex flex-col gap-1.5' },
+            React.createElement(UI.Label, null, 'Categoría padre'),
             React.createElement(
-              'div',
-              { className: 'flex flex-col gap-1.5' },
-              React.createElement(UI.Label, null, 'Nombre'),
-              React.createElement(UI.Input, {
-                value: createName,
-                onChange: (e: { target: { value: string } }) => setCreateName(e.target.value),
-                autoFocus: true,
-              })
-            ),
-            // Padre
-            React.createElement(
-              'div',
-              { className: 'flex flex-col gap-1.5' },
-              React.createElement(UI.Label, null, 'Categoría padre'),
-              React.createElement(
-                UI.Select,
-                {
-                  value: createParentId ?? '',
-                  onValueChange: (val: string) => setCreateParentId(val || null),
-                  placeholder: 'Sin padre (raíz)',
-                },
-                ...parentFlatOptions.map((opt) =>
-                  React.createElement(UI.SelectItem, { key: opt.id, value: opt.id }, opt.label)
-                )
+              UI.Select,
+              {
+                value: createParentId ?? '',
+                onValueChange: (val: string) => setCreateParentId(val || null),
+                placeholder: 'Sin padre (raíz)',
+              },
+              ...parentFlatOptions.map((opt) =>
+                React.createElement(UI.SelectItem, { key: opt.id, value: opt.id }, opt.label)
               )
             )
-          ),
-        }
-      )
+          )
+        ),
+      })
   );
 }

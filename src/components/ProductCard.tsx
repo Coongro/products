@@ -135,7 +135,9 @@ export function ProductCard(props: ProductCardProps) {
           React.Fragment,
           null,
           React.createElement(UI.Separator, null),
-          React.createElement('div', { className: 'mt-3' },
+          React.createElement(
+            'div',
+            { className: 'mt-3' },
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             extraInfo() as any
           )

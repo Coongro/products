@@ -100,12 +100,9 @@ export function ProductsTable(props: ProductsTableProps) {
     [columns, extraColumns]
   );
 
-  const handleSearch = useCallback(
-    (e: { target: { value: string } }) => {
-      setSearchValue(e.target.value);
-    },
-    []
-  );
+  const handleSearch = useCallback((e: { target: { value: string } }) => {
+    setSearchValue(e.target.value);
+  }, []);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -130,7 +127,7 @@ export function ProductsTable(props: ProductsTableProps) {
     return React.createElement(UI.ErrorDisplay, {
       title: 'Error al cargar productos',
       message: error,
-      onRetry: () => refetch(),
+      onRetry: () => void refetch(),
     });
   }
 
@@ -138,7 +135,11 @@ export function ProductsTable(props: ProductsTableProps) {
   function getSortDirection(col: ColumnDef<Product>) {
     if (!col.sortable) return undefined; // no sortable
     if (sortBy !== col.key) return false as const; // sortable sin dir
-    return sortDir === 'asc' ? ('asc' as const) : sortDir === 'desc' ? ('desc' as const) : (false as const);
+    return sortDir === 'asc'
+      ? ('asc' as const)
+      : sortDir === 'desc'
+        ? ('desc' as const)
+        : (false as const);
   }
 
   return React.createElement(
