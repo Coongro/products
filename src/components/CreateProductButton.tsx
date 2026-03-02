@@ -59,24 +59,21 @@ export function CreateProductButton(props: CreateProductButtonProps) {
     ),
 
     // FormDialog
-    React.createElement(
-      UI.FormDialog,
-      {
-        open,
-        onOpenChange: setOpen,
-        title: label,
-        size: 'lg',
-        children: React.createElement(ProductForm, {
-          defaults,
-          extraFields,
-          hiddenFields,
-          loading: creating,
-          onSubmit: (data) => {
-            void handleSubmit(data as ProductCreateData);
-          },
-          onCancel: () => setOpen(false),
-        }),
-      }
-    )
+    React.createElement(UI.FormDialog, {
+      open,
+      onOpenChange: setOpen,
+      title: label,
+      size: 'lg',
+      children: React.createElement(ProductForm, {
+        defaults,
+        extraFields,
+        hiddenFields,
+        loading: creating,
+        onSubmit: (data) => {
+          void handleSubmit(data as ProductCreateData);
+        },
+        onCancel: () => setOpen(false),
+      }),
+    })
   );
 }
