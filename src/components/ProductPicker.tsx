@@ -30,7 +30,7 @@ export function ProductPicker(props: ProductPickerProps) {
   }, []);
 
   // Normalizar valor (puede ser string, string[] o null)
-  const selectedId = Array.isArray(value) ? value[0] ?? null : value ?? null;
+  const selectedId = Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
 
   // Cargar producto seleccionado por ID
   useEffect(() => {
@@ -102,9 +102,7 @@ export function ProductPicker(props: ProductPickerProps) {
       })
     );
   } else if (results.length === 0) {
-    contentChildren.push(
-      React.createElement(UI.ComboboxEmpty, { key: 'empty' }, 'Sin resultados')
-    );
+    contentChildren.push(React.createElement(UI.ComboboxEmpty, { key: 'empty' }, 'Sin resultados'));
   } else {
     results.forEach((p) => {
       contentChildren.push(
@@ -136,7 +134,7 @@ export function ProductPicker(props: ProductPickerProps) {
     {
       value: selectedId ?? '',
       onValueChange: handleValueChange,
-      onSearchChange: doSearch,
+      onSearchChange: (q: string) => void doSearch(q),
       debounceMs: 300,
     },
     React.createElement(UI.ComboboxChipTrigger, {

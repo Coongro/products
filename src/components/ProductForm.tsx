@@ -171,7 +171,11 @@ export function ProductForm(props: ProductFormProps) {
       );
     }
 
-    return React.createElement('div', { key: fieldKey, className: 'flex flex-col gap-1.5' }, ...children);
+    return React.createElement(
+      'div',
+      { key: fieldKey, className: 'flex flex-col gap-1.5' },
+      ...children
+    );
   }
 
   const visibleBasic = SECTION_BASIC.filter((f) => !hiddenSet.has(f.key));
@@ -238,7 +242,11 @@ export function ProductForm(props: ProductFormProps) {
       sectionItems.push(renderField(field, formData[field.key], handleChange));
     });
     formChildren.push(
-      React.createElement('div', { key: 'section-pricing', className: 'space-y-3' }, ...sectionItems)
+      React.createElement(
+        'div',
+        { key: 'section-pricing', className: 'space-y-3' },
+        ...sectionItems
+      )
     );
   }
 
@@ -249,7 +257,11 @@ export function ProductForm(props: ProductFormProps) {
       sectionItems.push(renderField(field, formData[field.key], handleChange));
     });
     formChildren.push(
-      React.createElement('div', { key: 'section-inventory', className: 'space-y-3' }, ...sectionItems)
+      React.createElement(
+        'div',
+        { key: 'section-inventory', className: 'space-y-3' },
+        ...sectionItems
+      )
     );
   }
 

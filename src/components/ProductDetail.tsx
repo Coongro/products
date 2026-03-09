@@ -121,7 +121,7 @@ export function ProductDetail(props: ProductDetailProps) {
     return React.createElement(UI.ErrorDisplay, {
       title: 'Producto no encontrado',
       message: error ?? 'No se pudo cargar este producto',
-      onRetry: refetch,
+      onRetry: () => void refetch(),
       icon: React.createElement(UI.DynamicIcon, { icon: 'Package', size: 48 }),
     });
   }
@@ -209,18 +209,10 @@ export function ProductDetail(props: ProductDetailProps) {
               }),
               // SKU
               product.sku &&
-                React.createElement(
-                  UI.Badge,
-                  { variant: 'outline', size: 'sm' },
-                  product.sku
-                ),
+                React.createElement(UI.Badge, { variant: 'outline', size: 'sm' }, product.sku),
               // Precio principal
               salePrice &&
-                React.createElement(
-                  UI.Badge,
-                  { variant: 'brand-soft', size: 'sm' },
-                  salePrice
-                )
+                React.createElement(UI.Badge, { variant: 'brand-soft', size: 'sm' }, salePrice)
             )
           ),
 
@@ -329,7 +321,11 @@ export function ProductDetail(props: ProductDetailProps) {
             React.createElement(
               'div',
               { className: 'flex items-center gap-2' },
-              React.createElement(UI.DynamicIcon, { icon: 'Tag', size: 14, className: 'text-cg-text-muted' }),
+              React.createElement(UI.DynamicIcon, {
+                icon: 'Tag',
+                size: 14,
+                className: 'text-cg-text-muted',
+              }),
               React.createElement(UI.CardTitle, null, 'Identificación')
             )
           ),
@@ -370,7 +366,11 @@ export function ProductDetail(props: ProductDetailProps) {
             React.createElement(
               'div',
               { className: 'flex items-center gap-2' },
-              React.createElement(UI.DynamicIcon, { icon: 'DollarSign', size: 14, className: 'text-cg-text-muted' }),
+              React.createElement(UI.DynamicIcon, {
+                icon: 'DollarSign',
+                size: 14,
+                className: 'text-cg-text-muted',
+              }),
               React.createElement(UI.CardTitle, null, 'Precios')
             )
           ),
@@ -400,7 +400,11 @@ export function ProductDetail(props: ProductDetailProps) {
           React.createElement(
             'div',
             { className: 'flex items-center gap-2' },
-            React.createElement(UI.DynamicIcon, { icon: 'Box', size: 14, className: 'text-cg-text-muted' }),
+            React.createElement(UI.DynamicIcon, {
+              icon: 'Box',
+              size: 14,
+              className: 'text-cg-text-muted',
+            }),
             React.createElement(UI.CardTitle, null, `Variantes (${variants.length})`)
           )
         ),
@@ -576,7 +580,11 @@ export function ProductDetail(props: ProductDetailProps) {
           React.createElement(
             'div',
             { className: 'flex items-center gap-2' },
-            React.createElement(UI.DynamicIcon, { icon: 'Box', size: 14, className: 'text-cg-text-muted' }),
+            React.createElement(UI.DynamicIcon, {
+              icon: 'Box',
+              size: 14,
+              className: 'text-cg-text-muted',
+            }),
             React.createElement(UI.CardTitle, null, 'Inventario')
           )
         ),
