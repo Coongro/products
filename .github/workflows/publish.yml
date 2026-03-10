@@ -1,1 +1,36 @@
-@A:/Coongro2/Coongro/.tmp-publish.yml
+name: Publish Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Build & Publish to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Configure registry
+        run: |
+          echo "@coongro:registry=${{ secrets.STAGING_VERDACCIO_URL }}" > .npmrc
+          echo "//${{ secrets.STAGING_VERDACCIO_URL_HOST }}/:_authToken=${{ secrets.STAGING_VERDACCIO_TOKEN }}" >> .npmrc
+
+      - run: npm install
+      - run: npm run build
+
+      - name: Publish to production Verdaccio
+        run: |
+          echo "//${{ secrets.PROD_VERDACCIO_URL_HOST }}/:_authToken=${{ secrets.PROD_VERDACCIO_TOKEN }}" >> .npmrc
+          npm publish --ignore-scripts --registry ${{ secrets.PROD_VERDACCIO_URL }}
+
+      - name: Summary
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME=$(node -p "require('./package.json').name")
+          echo "### Published $NAME@$VERSION to production" >> $GITHUB_STEP_SUMMARY
