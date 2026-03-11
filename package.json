@@ -1,6 +1,6 @@
 {
   "name": "@coongro/products",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "description": "Módulo genérico de productos: catálogo, categorías, variantes e inventario. Reutilizable por cualquier kit.",
   "main": "dist/index.js",
