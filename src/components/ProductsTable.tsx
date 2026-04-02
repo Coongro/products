@@ -57,7 +57,6 @@ export function ProductsTable(props: ProductsTableProps) {
     [setFilters]
   );
 
-  // Columnas para DataTable
   const dtColumns = useMemo(() => {
     const base = customColumns ?? [
       { key: 'name', header: 'Nombre', sortable: true },
@@ -90,16 +89,15 @@ export function ProductsTable(props: ProductsTableProps) {
       },
     ];
 
+    // Cast necesario: ColumnDef.render retorna `unknown`, DataTable espera `ReactNode`
     return [...base, ...extraColumns] as Array<{
       key: string;
       header: string;
       sortable?: boolean;
       render?: (item: Product) => React.ReactNode;
-      className?: string;
     }>;
   }, [customColumns, extraColumns]);
 
-  // Acciones para DataTable
   const dtActions = useMemo(() => {
     if (extraActions.length === 0) return undefined;
     return extraActions.map((a) => ({
@@ -110,7 +108,6 @@ export function ProductsTable(props: ProductsTableProps) {
     }));
   }, [extraActions]);
 
-  // Mobile render: cada producto como card
   const mobileRender = useCallback(
     (product: Product) =>
       React.createElement(
