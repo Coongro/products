@@ -185,10 +185,11 @@ export function ProductForm(props: ProductFormProps) {
   const showCategory = !hiddenSet.has('category_id');
   const showIsActive = !hiddenSet.has('is_active');
 
-  function renderSectionHeader(title: string) {
+  function renderSectionHeader(title: string, icon: string) {
     return React.createElement(
       'h3',
-      { className: 'text-sm font-medium text-cg-text-muted uppercase tracking-wider' },
+      { className: 'flex items-center gap-2 text-sm font-medium text-cg-text-muted' },
+      React.createElement(UI.DynamicIcon, { icon, size: 14, className: 'text-cg-text-muted' }),
       title
     );
   }
@@ -211,7 +212,7 @@ export function ProductForm(props: ProductFormProps) {
 
   // --- Sección: Información básica ---
   if (visibleBasic.length > 0 || showCategory) {
-    const sectionItems: React.ReactNode[] = [renderSectionHeader('Información básica')];
+    const sectionItems: React.ReactNode[] = [renderSectionHeader('Información básica', 'Package')];
     visibleBasic.forEach((field) => {
       sectionItems.push(renderField(field, formData[field.key], handleChange));
     });
@@ -237,7 +238,7 @@ export function ProductForm(props: ProductFormProps) {
 
   // --- Sección: Precios ---
   if (visiblePricing.length > 0) {
-    const sectionItems: React.ReactNode[] = [renderSectionHeader('Precios')];
+    const sectionItems: React.ReactNode[] = [renderSectionHeader('Precios', 'DollarSign')];
     visiblePricing.forEach((field) => {
       sectionItems.push(renderField(field, formData[field.key], handleChange));
     });
@@ -252,7 +253,7 @@ export function ProductForm(props: ProductFormProps) {
 
   // --- Sección: Inventario ---
   if (visibleInventory.length > 0) {
-    const sectionItems: React.ReactNode[] = [renderSectionHeader('Inventario')];
+    const sectionItems: React.ReactNode[] = [renderSectionHeader('Inventario', 'Warehouse')];
     visibleInventory.forEach((field) => {
       sectionItems.push(renderField(field, formData[field.key], handleChange));
     });
