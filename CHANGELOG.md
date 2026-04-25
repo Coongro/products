@@ -1,5 +1,11 @@
 # @coongro/products
 
+## 1.1.0
+
+### Minor Changes
+
+- 65ae493: Migrate ProductsTable to DataTable with mobile card view (mobileRender)
+
 ## 1.0.3
 
 ### Patch Changes
