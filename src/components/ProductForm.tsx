@@ -37,6 +37,8 @@ export function ProductForm(props: ProductFormProps) {
     onCancel,
     onExtraFieldsData,
     loading = false,
+    formRef,
+    hideActions,
   } = props;
 
   const UI = getHostUI();
@@ -185,15 +187,6 @@ export function ProductForm(props: ProductFormProps) {
   const showCategory = !hiddenSet.has('category_id');
   const showIsActive = !hiddenSet.has('is_active');
 
-  function renderSectionHeader(title: string, icon: string) {
-    return React.createElement(
-      'h3',
-      { className: 'flex items-center gap-2 text-sm font-medium text-cg-text-muted' },
-      React.createElement(UI.DynamicIcon, { icon, size: 14, className: 'text-cg-text-muted' }),
-      title
-    );
-  }
-
   function renderToggleSwitch() {
     const isActive = formData.is_active !== false;
 
@@ -212,7 +205,7 @@ export function ProductForm(props: ProductFormProps) {
 
   // --- Sección: Información básica ---
   if (visibleBasic.length > 0 || showCategory) {
-    const sectionItems: React.ReactNode[] = [renderSectionHeader('Información básica', 'Package')];
+    const sectionItems: React.ReactNode[] = [];
     visibleBasic.forEach((field) => {
       sectionItems.push(renderField(field, formData[field.key], handleChange));
     });
@@ -232,83 +225,89 @@ export function ProductForm(props: ProductFormProps) {
       );
     }
     formChildren.push(
-      React.createElement('div', { key: 'section-basic', className: 'space-y-3' }, ...sectionItems)
+      React.createElement(
+        UI.FormSection,
+        { key: 'section-basic', icon: 'Package', title: 'Información básica' },
+        ...sectionItems
+      )
     );
   }
 
   // --- Sección: Precios ---
   if (visiblePricing.length > 0) {
-    const sectionItems: React.ReactNode[] = [renderSectionHeader('Precios', 'DollarSign')];
-    visiblePricing.forEach((field) => {
-      sectionItems.push(renderField(field, formData[field.key], handleChange));
-    });
     formChildren.push(
       React.createElement(
-        'div',
-        { key: 'section-pricing', className: 'space-y-3' },
-        ...sectionItems
+        UI.FormSection,
+        { key: 'section-pricing', icon: 'DollarSign', title: 'Precios' },
+        ...visiblePricing.map((field) => renderField(field, formData[field.key], handleChange))
       )
     );
   }
 
   // --- Sección: Inventario ---
   if (visibleInventory.length > 0) {
-    const sectionItems: React.ReactNode[] = [renderSectionHeader('Inventario', 'Warehouse')];
-    visibleInventory.forEach((field) => {
-      sectionItems.push(renderField(field, formData[field.key], handleChange));
-    });
     formChildren.push(
       React.createElement(
-        'div',
-        { key: 'section-inventory', className: 'space-y-3' },
-        ...sectionItems
+        UI.FormSection,
+        { key: 'section-inventory', icon: 'Warehouse', title: 'Inventario' },
+        ...visibleInventory.map((field) => renderField(field, formData[field.key], handleChange))
       )
     );
   }
 
-  // --- Toggle de activo ---
+  // --- Toggle de activo (en su propia sección) ---
   if (showIsActive) {
     formChildren.push(
-      React.createElement('div', { key: 'toggle-active', className: 'pt-1' }, renderToggleSwitch())
+      React.createElement(
+        UI.FormSection,
+        { key: 'section-status', icon: 'CircleCheck', title: 'Estado' },
+        renderToggleSwitch()
+      )
     );
   }
 
   // --- Campos extra de bloques ---
   if (extraFields.length > 0) {
-    extraFields.forEach((field) => {
-      formChildren.push(
-        renderField(
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          field as any,
-          extraData[field.key],
-          handleExtraChange
+    formChildren.push(
+      React.createElement(
+        UI.FormSection,
+        { key: 'section-extra', icon: 'Settings', title: 'Datos adicionales' },
+        ...extraFields.map((field) =>
+          renderField(
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            field as any,
+            extraData[field.key],
+            handleExtraChange
+          )
         )
-      );
-    });
+      )
+    );
   }
 
-  // --- Botones ---
-  formChildren.push(
-    React.createElement(
-      'div',
-      { key: 'buttons', className: 'flex gap-3 pt-2' },
+  // --- Botones (solo si el caller no los pone en el footer del dialog) ---
+  if (!hideActions) {
+    formChildren.push(
       React.createElement(
-        UI.Button,
-        { type: 'submit', disabled: loading },
-        loading ? 'Guardando...' : isEdit ? 'Actualizar' : 'Crear producto'
-      ),
-      onCancel &&
+        'div',
+        { key: 'buttons', className: 'flex gap-3 pt-2' },
         React.createElement(
           UI.Button,
-          { type: 'button', variant: 'outline', onClick: onCancel },
-          'Cancelar'
-        )
-    )
-  );
+          { type: 'submit', disabled: loading },
+          loading ? 'Guardando...' : isEdit ? 'Actualizar' : 'Crear producto'
+        ),
+        onCancel &&
+          React.createElement(
+            UI.Button,
+            { type: 'button', variant: 'outline', onClick: onCancel },
+            'Cancelar'
+          )
+      )
+    );
+  }
 
   return React.createElement(
     'form',
-    { onSubmit: handleSubmit, className: 'flex flex-col gap-6' },
+    { ref: formRef, onSubmit: handleSubmit, className: 'flex flex-col gap-4' },
     ...formChildren
   );
 }

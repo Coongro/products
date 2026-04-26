@@ -1,5 +1,5 @@
 /**
- * Boton para crear producto. Abre un FormDialog con ProductForm.
+ * Boton para crear producto. Abre un FormDialogSubmit con ProductForm.
  * Usa useProductMutations para la creacion y muestra toast de exito.
  */
 import { getHostReact, getHostUI } from '@coongro/plugin-sdk';
@@ -58,22 +58,27 @@ export function CreateProductButton(props: CreateProductButtonProps) {
       label
     ),
 
-    // FormDialog
-    React.createElement(UI.FormDialog, {
+    // FormDialogSubmit con footer sticky
+    React.createElement(UI.FormDialogSubmit, {
       open,
       onOpenChange: setOpen,
       title: label,
       size: 'lg',
-      children: React.createElement(ProductForm, {
-        defaults,
-        extraFields,
-        hiddenFields,
-        loading: creating,
-        onSubmit: (data) => {
-          void handleSubmit(data as ProductCreateData);
-        },
-        onCancel: () => setOpen(false),
-      }),
+      submitLabel: 'Crear producto',
+      onCancel: () => setOpen(false),
+      disabled: creating,
+      children: ({ formRef }: { formRef: React.RefObject<HTMLFormElement> }) =>
+        React.createElement(ProductForm, {
+          defaults,
+          extraFields,
+          hiddenFields,
+          loading: creating,
+          formRef,
+          hideActions: true,
+          onSubmit: (data) => {
+            void handleSubmit(data as ProductCreateData);
+          },
+        }),
     })
   );
 }

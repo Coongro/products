@@ -1,3 +1,5 @@
+import type * as React from 'react';
+
 import type { Product, Variant, ProductCreateData, ProductUpdateData } from './domain.js';
 import type { ProductFilters } from './filters.js';
 
@@ -68,6 +70,10 @@ export interface ProductFormProps {
   onCancel?: () => void;
   onExtraFieldsData?: (data: Record<string, unknown>) => void;
   loading?: boolean;
+  /** Ref al elemento <form>. El caller puede disparar submit con `formRef.current?.requestSubmit()` */
+  formRef?: React.Ref<HTMLFormElement>;
+  /** Si es true, el form no renderiza sus propios botones (los pone el caller en el footer del dialog) */
+  hideActions?: boolean;
 }
 
 // --- ProductPicker ---
