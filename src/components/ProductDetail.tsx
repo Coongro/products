@@ -225,30 +225,23 @@ export function ProductDetail(props: ProductDetailProps) {
                 UI.Button,
                 {
                   variant: 'outline',
+                  size: 'sm',
                   onClick: () => onEdit(product),
                 },
-                React.createElement(UI.DynamicIcon, { icon: 'SquarePen', size: 15 }),
+                React.createElement(UI.DynamicIcon, { icon: 'Pencil', size: 14 }),
                 'Editar'
               ),
             onDelete &&
-              (confirmDelete
-                ? React.createElement(UI.InlineConfirm, {
-                    message: '¿Eliminar?',
-                    onConfirm: () => {
-                      onDelete?.(product);
-                      setConfirmDelete(false);
-                    },
-                    onCancel: () => setConfirmDelete(false),
-                  })
-                : React.createElement(
-                    UI.Button,
-                    {
-                      variant: 'destructive',
-                      onClick: () => setConfirmDelete(true),
-                    },
-                    React.createElement(UI.DynamicIcon, { icon: 'Trash2', size: 15 }),
-                    'Eliminar'
-                  )),
+              React.createElement(
+                UI.Button,
+                {
+                  variant: 'destructive',
+                  size: 'sm',
+                  onClick: () => setConfirmDelete(true),
+                },
+                React.createElement(UI.DynamicIcon, { icon: 'Trash2', size: 14 }),
+                'Eliminar'
+              ),
             // Extra actions
             ...extraActions
               .filter((a) => !a.hidden || !a.hidden(product))
@@ -614,6 +607,51 @@ export function ProductDetail(props: ProductDetailProps) {
       )
     );
   }
+
+  // ═══ METADATA (creado/actualizado) ═════════════════════
+  children.push(
+    React.createElement(
+      UI.Card,
+      { key: 'metadata', className: 'p-4 w-fit' },
+      React.createElement(
+        'div',
+        { className: 'flex flex-col gap-1 text-xs text-cg-text-muted' },
+        React.createElement(
+          'span',
+          null,
+          `Creado: ${new Date(product.created_at).toLocaleDateString('es-AR')}`
+        ),
+        React.createElement(
+          'span',
+          null,
+          `Actualizado: ${new Date(product.updated_at).toLocaleDateString('es-AR')}`
+        )
+      )
+    )
+  );
+
+  // ═══ CONFIRMAR ELIMINACIÓN ═════════════════════
+  children.push(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    React.createElement((UI as any).ConfirmDialog, {
+      key: 'confirm-delete',
+      open: confirmDelete,
+      onOpenChange: setConfirmDelete,
+      title: 'Eliminar producto',
+      description: React.createElement(
+        React.Fragment,
+        null,
+        '¿Eliminar ',
+        React.createElement('strong', null, product.name),
+        '? Esta acción no se puede deshacer.'
+      ),
+      confirmLabel: 'Eliminar',
+      onConfirm: () => {
+        onDelete?.(product);
+        setConfirmDelete(false);
+      },
+    })
+  );
 
   return React.createElement('div', { className: 'flex flex-col gap-5' }, ...children);
 }
