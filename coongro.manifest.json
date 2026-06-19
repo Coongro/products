@@ -8,6 +8,15 @@
     ]
   },
   "contributes": {
+    "httpEndpoints": [
+      {
+        "id": "list-products",
+        "path": "/list",
+        "method": "GET",
+        "handler": "./dist/endpoints/products.js",
+        "export": "listProducts"
+      }
+    ],
     "repositories": [
       {
         "module": "./dist/repositories/category.repository.js",
@@ -28,6 +37,11 @@
         "module": "./dist/repositories/stock-movement.repository.js",
         "export": "StockMovementRepository",
         "prefix": "products.stock"
+      },
+      {
+        "module": "./dist/repositories/batch.repository.js",
+        "export": "BatchRepository",
+        "prefix": "products.batches"
       }
     ]
   }
