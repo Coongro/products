@@ -8,15 +8,6 @@
     ]
   },
   "contributes": {
-    "httpEndpoints": [
-      {
-        "id": "list-products",
-        "path": "/list",
-        "method": "GET",
-        "handler": "./dist/endpoints/products.js",
-        "export": "listProducts"
-      }
-    ],
     "repositories": [
       {
         "module": "./dist/repositories/category.repository.js",
