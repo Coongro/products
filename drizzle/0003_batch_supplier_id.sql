@@ -1,0 +1,1 @@
+ALTER TABLE "module_products_batches" ADD COLUMN "supplier_id" uuid;

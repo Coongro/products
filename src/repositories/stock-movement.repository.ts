@@ -70,7 +70,9 @@ export class StockMovementRepository {
       tx
         .update(productTable)
         .set({
-          stock_current: sql`(${productTable.stock_current}::numeric + ${qty})::text`,
+          // stock_current es numeric: NO castear el resultado a ::text (rompía el
+          // update con "column is of type numeric but expression is of type text").
+          stock_current: sql`(${productTable.stock_current}::numeric + ${qty})`,
           updated_at: new Date().toISOString(),
         } as any)
         .where(eq(productTable.id, row.product_id))
@@ -82,7 +84,7 @@ export class StockMovementRepository {
         tx
           .update(variantTable)
           .set({
-            stock_current: sql`(${variantTable.stock_current}::numeric + ${qty})::text`,
+            stock_current: sql`(${variantTable.stock_current}::numeric + ${qty})`,
             updated_at: new Date().toISOString(),
           } as any)
           .where(eq(variantTable.id, row.variant_id))
@@ -111,6 +113,42 @@ export class StockMovementRepository {
         .where(eq(stockMovementTable.variant_id, variantId))
         .orderBy(desc(stockMovementTable.created_at))
     );
+  }
+
+  /**
+   * Movimientos de un lote (entradas `in` por la compra/alta, salidas `out` por
+   * cada consumo) ordenados cronológicamente. Es la base de la trazabilidad del
+   * lote: ciclo recibido/consumido + historial de a qué se usó cada salida.
+   */
+  async listByBatch({ batchId }: { batchId: string }): Promise<StockMovementRow[]> {
+    return this.db.ormQuery((tx) =>
+      tx
+        .select()
+        .from(stockMovementTable)
+        .where(eq(stockMovementTable.batch_id, batchId))
+        .orderBy(stockMovementTable.created_at)
+    );
+  }
+
+  /**
+   * Total consumido (salidas `out`) por lote, agregado. Permite derivar el
+   * "recibido" de cada lote como disponible + consumido, sin guardar la cantidad
+   * original aparte: lo que entró = lo que queda + lo que salió.
+   */
+  async consumedByBatch(): Promise<Array<{ batchId: string; consumed: number }>> {
+    const rows = await this.db.ormQuery((tx) =>
+      tx
+        .select({
+          batchId: stockMovementTable.batch_id,
+          consumed: sql<number>`coalesce(sum(abs(${stockMovementTable.quantity}::numeric)), 0)::float`,
+        })
+        .from(stockMovementTable)
+        .where(eq(stockMovementTable.type, 'out'))
+        .groupBy(stockMovementTable.batch_id)
+    );
+    return rows
+      .filter((r) => r.batchId)
+      .map((r) => ({ batchId: r.batchId, consumed: Number(r.consumed) || 0 }));
   }
 
   async getBalance({ productId }: { productId: string }): Promise<StockBalanceResult> {

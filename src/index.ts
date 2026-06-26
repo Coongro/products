@@ -87,3 +87,36 @@ export { ProductDetail } from './components/ProductDetail.js';
 export { CreateProductButton } from './components/CreateProductButton.js';
 export { CategoryPicker } from './components/CategoryPicker.js';
 export { StockBadge } from './components/StockBadge.js';
+
+// Lotes (batches) — contrato genérico reusable por cualquier kit (COONG-220).
+// El motor de datos vive en products.batches; la vista descubre los "tipos"
+// (vacuna/medicamento/...) por inyección de clasificadores, sin acoplar products
+// a ningún kit. Ver types/batch.ts para el contrato.
+export { BatchesView } from './components/BatchesView.js';
+export { BatchFormDialog } from './components/BatchFormDialog.js';
+export { BatchPicker } from './components/BatchPicker.js';
+export { BatchDetail } from './components/BatchDetail.js';
+export type { BatchRefInfo } from './components/BatchDetail.js';
+export { StockPanel } from './components/StockPanel.js';
+export type { BatchOption } from './components/BatchPicker.js';
+export type {
+  ConsumeParams,
+  ConsumeResult,
+  ConsumedBatch,
+  BatchConsumePlanItem,
+} from './repositories/batch.repository.js';
+export type {
+  BatchFormData,
+  BatchEditTarget,
+  BatchProductOption,
+} from './components/BatchFormDialog.js';
+export {
+  computeBatchStatus,
+  statusBadge,
+  formatExpiration,
+  daysUntil,
+  isUsable,
+  EXPIRING_SOON_DAYS,
+} from './components/batch-status.js';
+export type { BatchListItem, BatchVisualStatus } from './components/batch-status.js';
+export type { BatchClassifier, BatchesViewProps } from './types/batch.js';
