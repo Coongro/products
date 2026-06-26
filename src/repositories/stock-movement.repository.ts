@@ -5,6 +5,7 @@ import { productTable } from '../schema/product.js';
 import { stockMovementTable } from '../schema/stock-movement.js';
 import type { StockMovementRow, NewStockMovementRow } from '../schema/stock-movement.js';
 import { variantTable } from '../schema/variant.js';
+import { weightedAverageCost } from '../services/costing.js';
 
 export interface StockMovementListParams {
   productId?: string;
@@ -66,17 +67,46 @@ export class StockMovementRepository {
 
     // Actualizar stock_current en producto
     const qty = Number(row.quantity);
-    await this.db.ormQuery((tx) =>
-      tx
+    // Recosteo (COONG-223): solo en entradas con costo (qty > 0 y unit_cost informado, ej. compra
+    // de insumo suelto) se recalcula el costo del producto por promedio ponderado móvil. Las
+    // salidas y los ajustes sin costo no lo tocan. La lectura del stock/costo previo y su update
+    // van en el MISMO ormQuery (atómicos entre sí → el promedio usa la base correcta). El insert
+    // del movimiento de arriba corre en un ormQuery aparte (separación preexistente, no del recosteo).
+    const incomingCost =
+      qty > 0 && row.unit_cost !== null && row.unit_cost !== undefined
+        ? Number(row.unit_cost)
+        : null;
+    await this.db.ormQuery(async (tx) => {
+      let costSet: { purchase_price?: string } = {};
+      if (incomingCost !== null) {
+        const [prev] = await tx
+          .select({
+            stock_current: productTable.stock_current,
+            purchase_price: productTable.purchase_price,
+          })
+          .from(productTable)
+          .where(eq(productTable.id, row.product_id))
+          .limit(1);
+        const prevCost = prev?.purchase_price;
+        const newCost = weightedAverageCost({
+          currentQty: Number(prev?.stock_current) || 0,
+          currentCost: prevCost !== null && prevCost !== undefined ? Number(prevCost) : null,
+          incomingQty: qty,
+          incomingCost,
+        });
+        if (newCost !== null) costSet = { purchase_price: String(newCost) };
+      }
+      await tx
         .update(productTable)
         .set({
           // stock_current es numeric: NO castear el resultado a ::text (rompía el
           // update con "column is of type numeric but expression is of type text").
           stock_current: sql`(${productTable.stock_current}::numeric + ${qty})`,
+          ...costSet,
           updated_at: new Date().toISOString(),
         } as any)
-        .where(eq(productTable.id, row.product_id))
-    );
+        .where(eq(productTable.id, row.product_id));
+    });
 
     // Actualizar stock_current en variante si aplica
     if (row.variant_id) {

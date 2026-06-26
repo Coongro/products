@@ -7,6 +7,7 @@ import { batchTable } from '../schema/batch.js';
 import type { BatchRow, NewBatchRow } from '../schema/batch.js';
 import { productTable } from '../schema/product.js';
 import { stockMovementTable } from '../schema/stock-movement.js';
+import { weightedAverageCost } from '../services/costing.js';
 
 /** Parámetros del consumo de stock por lotes (motor de lotes, COONG-220). */
 export interface ConsumeParams {
@@ -96,10 +97,33 @@ export class BatchRepository {
           quantity: String(qty),
           reference_type: 'batch_in',
         } as any);
+        // Recosteo (COONG-223): el lote ES una recepción de mercadería, así que recalcula el
+        // costo del producto por promedio ponderado móvil con el precio de compra del lote.
+        // Se lee el stock+costo previos en la MISMA transacción (antes de sumar el stock) para
+        // que el promedio use la base correcta y el recálculo sea atómico con el alta del lote.
+        const [prev] = await tx
+          .select({
+            stock_current: productTable.stock_current,
+            purchase_price: productTable.purchase_price,
+          })
+          .from(productTable)
+          .where(eq(productTable.id, row.product_id))
+          .limit(1);
+        // $inferInsert colapsa con strict:false y pierde los campos opcionales del shape de `row`
+        // (mismo motivo que `received_quantity` arriba) → leer el precio del lote con cast.
+        const batchCost = (data as { purchase_price?: string | null }).purchase_price;
+        const prevCost = prev?.purchase_price;
+        const newCost = weightedAverageCost({
+          currentQty: Number(prev?.stock_current) || 0,
+          currentCost: prevCost !== null && prevCost !== undefined ? Number(prevCost) : null,
+          incomingQty: qty,
+          incomingCost: batchCost !== null && batchCost !== undefined ? Number(batchCost) : null,
+        });
         await tx
           .update(productTable)
           .set({
             stock_current: sql`(${productTable.stock_current}::numeric + ${qty})`,
+            ...(newCost !== null ? { purchase_price: String(newCost) } : {}),
             updated_at: new Date().toISOString(),
           } as any)
           .where(eq(productTable.id, row.product_id));
