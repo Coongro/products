@@ -1,0 +1,1 @@
+ALTER TABLE "module_products_stock_movements" ADD COLUMN "batch_id" uuid;
