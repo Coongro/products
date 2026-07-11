@@ -28,6 +28,11 @@
         "module": "./dist/repositories/stock-movement.repository.js",
         "export": "StockMovementRepository",
         "prefix": "products.stock"
+      },
+      {
+        "module": "./dist/repositories/batch.repository.js",
+        "export": "BatchRepository",
+        "prefix": "products.batches"
       }
     ]
   }

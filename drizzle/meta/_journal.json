@@ -8,6 +8,34 @@
       "when": 1771296102681,
       "tag": "0000_initial",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781830219917,
+      "tag": "0001_ambiguous_oracle",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782095520262,
+      "tag": "0002_add_batch_id_to_movements",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782171563718,
+      "tag": "0003_batch_supplier_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782254463164,
+      "tag": "0004_batch_received_quantity",
+      "breakpoints": true
     }
   ]
 }
