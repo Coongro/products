@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 
 import type { ModuleDatabaseAPI } from '@coongro/plugin-sdk';
 import { eq, and, lte, asc, gt, sql } from 'drizzle-orm';
@@ -78,7 +77,7 @@ export class BatchRepository {
     const received = (data as { received_quantity?: string | null }).received_quantity;
     const row = {
       ...data,
-      id: data.id ?? randomUUID(),
+      id: data.id ?? crypto.randomUUID(),
       received_quantity: received ?? data.quantity,
     };
     const qty = Number(row.quantity) || 0;
@@ -90,7 +89,7 @@ export class BatchRepository {
         .returning();
       if (qty > 0) {
         await tx.insert(stockMovementTable).values({
-          id: randomUUID(),
+          id: crypto.randomUUID(),
           product_id: row.product_id,
           batch_id: row.id,
           type: 'in',
@@ -247,7 +246,7 @@ export class BatchRepository {
         .where(eq(batchTable.id, batch.id));
 
       await tx.insert(stockMovementTable).values({
-        id: randomUUID(),
+        id: crypto.randomUUID(),
         product_id: params.productId,
         batch_id: batch.id,
         type: 'out',
