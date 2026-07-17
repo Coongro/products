@@ -19,6 +19,13 @@ export interface ConsumeParams {
   referenceType?: string;
   /** Id de la entidad origen (appliedId, consultationId, prescriptionId). */
   referenceId?: string;
+  /**
+   * Política de lotes vencidos. Por defecto (`false`) el motor NUNCA consume un
+   * lote vencido: el FIFO los saltea y, en modo manual, rechaza el lote elegido
+   * si venció. Con `true` (política "avisar") sí los consume, pero cada lote
+   * tocado viene marcado con `expired` para que el llamador pueda advertir.
+   */
+  allowExpired?: boolean;
 }
 
 /** Un lote tocado por un consumo, con la cantidad efectivamente descontada. */
@@ -26,6 +33,8 @@ export interface ConsumedBatch {
   batchId: string;
   batchNumber: string;
   consumed: number;
+  /** True si el lote consumido estaba vencido (solo posible con política "avisar"). */
+  expired: boolean;
 }
 
 /** Plan de consumo (preview): qué lote se tocaría y cuánto, sin modificar nada. */
@@ -38,6 +47,8 @@ export interface BatchConsumePlanItem {
   available: number;
   /** Cuánto se descontaría de este lote. */
   toConsume: number;
+  /** True si el lote ya venció (solo aparece en el plan si `allowExpired`). */
+  expired: boolean;
 }
 
 /** Resultado de un consumo: cuánto se descontó, de qué lotes, y faltante si no alcanzó. */
@@ -46,6 +57,21 @@ export interface ConsumeResult {
   batches: ConsumedBatch[];
   /** Unidades que no se pudieron descontar por falta de stock (0 = se cubrió todo). */
   shortfall: number;
+}
+
+/**
+ * True si el lote ya venció: tiene fecha de vencimiento anterior a HOY (comparación
+ * por día, no por hora). Un lote que vence hoy todavía es usable — consistente con
+ * `computeBatchStatus` de batch-status.ts, donde vencido = días < 0.
+ */
+function isExpiredRow(batch: BatchRow): boolean {
+  const exp = batch.expiration_date;
+  if (!exp) return false;
+  const [y, m, d] = exp.slice(0, 10).split('-').map(Number);
+  if (!y || !m || !d) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return new Date(y, m - 1, d).getTime() < today.getTime();
 }
 
 /**
@@ -159,8 +185,18 @@ export class BatchRepository {
    * Lotes disponibles para consumir: activos y con stock, ordenados FIFO
    * (vence primero; Postgres pone los NULL al final en ASC). El filtro de
    * stock se hace en memoria porque `quantity` es numeric-as-text.
+   *
+   * Por defecto EXCLUYE los lotes vencidos: el FIFO nunca debe despachar stock
+   * vencido por descuido (antes los tomaba primero, porque vencen antes). Con
+   * `includeExpired` se los incluye (política "avisar" — el llamador advierte).
    */
-  async listAvailable({ productId }: { productId: string }): Promise<BatchRow[]> {
+  async listAvailable({
+    productId,
+    includeExpired = false,
+  }: {
+    productId: string;
+    includeExpired?: boolean;
+  }): Promise<BatchRow[]> {
     const rows = await this.db.ormQuery((tx) =>
       tx
         .select()
@@ -168,7 +204,7 @@ export class BatchRepository {
         .where(and(eq(batchTable.product_id, productId), eq(batchTable.status, 'active')))
         .orderBy(asc(batchTable.expiration_date))
     );
-    return rows.filter((b) => Number(b.quantity) > 0);
+    return rows.filter((b) => Number(b.quantity) > 0 && (includeExpired || !isExpiredRow(b)));
   }
 
   /**
@@ -217,6 +253,7 @@ export class BatchRepository {
         batchId: batch.id,
         batchNumber: batch.batch_number,
         consumed: item.toConsume,
+        expired: item.expired,
       });
     }
 
@@ -268,11 +305,16 @@ export class BatchRepository {
 
   /** Lotes objetivo del consumo: el puntual (manual) o todos los disponibles (FIFO). */
   private async resolveTargets(params: ConsumeParams): Promise<BatchRow[]> {
+    const allowExpired = params.allowExpired ?? false;
     if (params.batchId) {
       const batch = await this.getById({ id: params.batchId });
-      return batch ? [batch] : [];
+      if (!batch) return [];
+      // Modo manual: si el lote elegido venció y no se permite, se rechaza (no se
+      // consume) para no despachar stock vencido por descuido.
+      if (!allowExpired && isExpiredRow(batch)) return [];
+      return [batch];
     }
-    return this.listAvailable({ productId: params.productId });
+    return this.listAvailable({ productId: params.productId, includeExpired: allowExpired });
   }
 
   /** Reparte `needed` entre los lotes en orden (cascada), sin modificar nada. */
@@ -290,6 +332,7 @@ export class BatchRepository {
         expirationDate: batch.expiration_date ?? '',
         available,
         toConsume,
+        expired: isExpiredRow(batch),
       });
       remaining -= toConsume;
     }
