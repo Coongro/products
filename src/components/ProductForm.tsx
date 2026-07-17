@@ -1,5 +1,6 @@
 import { getHostReact, getHostUI } from '@coongro/plugin-sdk';
 
+import { useProductsSettings } from '../settings/settings.gen.js';
 import type { ProductFormProps } from '../types/components.js';
 import type { ProductCreateData } from '../types/domain.js';
 
@@ -7,6 +8,16 @@ import { CategoryPicker } from './CategoryPicker.js';
 
 const React = getHostReact();
 const { useState, useCallback, useEffect } = React;
+
+/** Redondeo a centavos para el precio sugerido. */
+const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
+
+/** Precio de venta sugerido desde el costo y el margen (%). null si no hay dato para sugerir. */
+function suggestedSale(purchase: unknown, marginPct: number): number | null {
+  const p = Number(purchase);
+  if (!(marginPct > 0) || !Number.isFinite(p) || p <= 0) return null;
+  return round2(p * (1 + marginPct / 100));
+}
 
 const SECTION_BASIC = [
   { key: 'name', label: 'Nombre', type: 'text', required: true },
@@ -43,6 +54,8 @@ export function ProductForm(props: ProductFormProps) {
 
   const UI = getHostUI();
   const isEdit = !!product;
+  const { settings: cfg } = useProductsSettings();
+  const margin = cfg.pricingDefaultMargin;
 
   const [formData, setFormData] = useState<Record<string, unknown>>(() => {
     if (product) {
@@ -60,9 +73,23 @@ export function ProductForm(props: ProductFormProps) {
     }
   }, [product]);
 
-  const handleChange = useCallback((key: string, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  }, []);
+  const handleChange = useCallback(
+    (key: string, value: unknown) => {
+      setFormData((prev) => {
+        const next = { ...prev, [key]: value };
+        // Al cargar el costo, prellenar el precio de venta con el margen por defecto,
+        // solo si el precio de venta sigue vacío (nunca pisar un valor puesto a mano).
+        if (key === 'purchase_price') {
+          const saleEmpty =
+            prev.sale_price === undefined || prev.sale_price === null || prev.sale_price === '';
+          const suggested = suggestedSale(value, margin);
+          if (saleEmpty && suggested !== null) next.sale_price = String(suggested);
+        }
+        return next;
+      });
+    },
+    [margin]
+  );
 
   const handleExtraChange = useCallback(
     (key: string, value: unknown) => {
@@ -171,6 +198,25 @@ export function ProductForm(props: ProductFormProps) {
           'El nombre es obligatorio'
         )
       );
+    }
+
+    // Sugerencia de precio de venta desde el costo + margen por defecto (clickeable para aplicar).
+    if (fieldKey === 'sale_price' && margin > 0) {
+      const suggested = suggestedSale(formData.purchase_price, margin);
+      if (suggested !== null && String(suggested) !== String((value as string) ?? '')) {
+        children.push(
+          React.createElement(
+            'button',
+            {
+              key: 'margin-hint',
+              type: 'button',
+              className: 'text-xs text-cg-text-muted hover:text-cg-text text-left underline',
+              onClick: () => onChange('sale_price', String(suggested)),
+            },
+            `Sugerido: $${suggested.toLocaleString('es-AR')} (margen ${margin}%) · usar`
+          )
+        );
+      }
     }
 
     return React.createElement(
