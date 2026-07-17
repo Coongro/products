@@ -79,14 +79,21 @@ export function formatExpiration(expiration: string): string {
   return `${d}/${m}/${y}`;
 }
 
-/** Prioridad: baja > agotado > vencido > por-vencer(30) > activo. */
-export function computeBatchStatus(batch: BatchListItem): BatchVisualStatus {
+/**
+ * Prioridad: baja > agotado > vencido > por-vencer > activo. El umbral de
+ * "por-vencer" (`alertDays`) es configurable — default `EXPIRING_SOON_DAYS`
+ * (setting `products.stock.alertDays`, que la vista lee y pasa).
+ */
+export function computeBatchStatus(
+  batch: BatchListItem,
+  alertDays: number = EXPIRING_SOON_DAYS
+): BatchVisualStatus {
   if (batch.status === 'recalled') return 'baja';
   if (batch.quantity <= 0) return 'agotado';
   const days = daysUntil(batch.expirationDate);
   if (days !== null) {
     if (days < 0) return 'vencido';
-    if (days <= EXPIRING_SOON_DAYS) return { kind: 'por-vencer', days };
+    if (days <= alertDays) return { kind: 'por-vencer', days };
   }
   return 'activo';
 }

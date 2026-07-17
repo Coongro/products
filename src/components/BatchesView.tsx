@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 import { getHostReact, getHostUI, actions } from '@coongro/plugin-sdk';
 
+import { useProductsSettings } from '../settings/settings.gen.js';
 import type { BatchClassifier, BatchesViewProps } from '../types/batch.js';
 
 import { BajaDialog } from './BajaDialog.js';
@@ -85,6 +86,10 @@ export function BatchesView(props: BatchesViewProps) {
     DateField,
     productFilterParam,
   } = props;
+
+  // Umbral configurable de "por vencer" (setting genérico de stock de products).
+  const { settings: stockSettings } = useProductsSettings();
+  const alertDays = stockSettings.stockAlertDays;
 
   const [batches, setBatches] = useState<BatchListItem[]>([]);
   const [productOptions, setProductOptions] = useState<BatchProductOption[]>([]);
@@ -206,7 +211,7 @@ export function BatchesView(props: BatchesViewProps) {
 
     if (estadoFilter !== 'todos') {
       result = result.filter((b) => {
-        const st = computeBatchStatus(b);
+        const st = computeBatchStatus(b, alertDays);
         if (estadoFilter === 'activos') return isUsable(st);
         if (estadoFilter === 'vencidos') return st === 'vencido';
         if (estadoFilter === 'agotados') return st === 'agotado';
@@ -259,7 +264,17 @@ export function BatchesView(props: BatchesViewProps) {
     }
 
     return result;
-  }, [batches, estadoFilter, tipoFilter, porVencer, search, productFilter, sortKey, sortDir]);
+  }, [
+    batches,
+    estadoFilter,
+    tipoFilter,
+    porVencer,
+    search,
+    productFilter,
+    sortKey,
+    sortDir,
+    alertDays,
+  ]);
 
   const handleSort = useCallback((key: string, direction: 'asc' | 'desc' | null) => {
     setSortKey(direction ? key : null);
@@ -375,7 +390,7 @@ export function BatchesView(props: BatchesViewProps) {
 
   // Próximo a vencer (FIFO) entre los lotes usables de un producto.
   const fifoNext = (rows: BatchListItem[]): BatchListItem | undefined => {
-    const usable = rows.filter((b) => isUsable(computeBatchStatus(b)));
+    const usable = rows.filter((b) => isUsable(computeBatchStatus(b, alertDays)));
     return [...usable].sort((a, b) => {
       if (!a.expirationDate && !b.expirationDate) return 0;
       if (!a.expirationDate) return 1;
@@ -389,7 +404,7 @@ export function BatchesView(props: BatchesViewProps) {
     const first = rows[0];
     const meta = first?.kind ? kindMetaByKind.get(first.kind) : null;
     const total = rows
-      .filter((b) => isUsable(computeBatchStatus(b)))
+      .filter((b) => isUsable(computeBatchStatus(b, alertDays)))
       .reduce((s, b) => s + b.quantity, 0);
     const next = fifoNext(rows);
     return h(
@@ -616,7 +631,7 @@ export function BatchesView(props: BatchesViewProps) {
       {
         key: 'estado',
         header: 'Estado',
-        render: (b: BatchListItem) => statusBadge(computeBatchStatus(b)),
+        render: (b: BatchListItem) => statusBadge(computeBatchStatus(b, alertDays)),
       },
       {
         key: 'cantidad',
@@ -695,7 +710,7 @@ export function BatchesView(props: BatchesViewProps) {
           ),
       },
     ],
-    [kindMetaByKind]
+    [kindMetaByKind, alertDays]
   );
 
   const tipoOptions = useMemo(
