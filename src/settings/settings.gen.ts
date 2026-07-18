@@ -34,6 +34,7 @@ export interface ProductsSettingsByKey {
   'products.stock.alertDays': number;
   'products.stock.expiredLots': 'block' | 'warn';
   'products.stock.autoDeduct': boolean;
+  'products.pricing.defaultMargin': number;
 }
 
 /** Settings del plugin con defaults aplicados y coerción por tipo. */
@@ -44,6 +45,8 @@ export interface ProductsSettings {
   readonly stockExpiredLots: 'block' | 'warn';
   /** Descontar stock automáticamente — Al registrar el uso de un producto (medicación en consulta, venta o receta), descontar su stock de los lotes. · `products.stock.autoDeduct` · default: `true` */
   readonly stockAutoDeduct: boolean;
+  /** Margen por defecto (%) — Margen que se aplica sobre el precio de compra para sugerir el precio de venta al cargar un producto. Ej.: costo $100 con margen 50% sugiere $150. 0 = no sugerir precio de venta. · `products.pricing.defaultMargin` · default: `0` */
+  readonly pricingDefaultMargin: number;
 }
 
 /** Nombre de prop → key punteada del manifest. */
@@ -51,6 +54,7 @@ export const SETTING_KEYS = {
   stockAlertDays: 'products.stock.alertDays',
   stockExpiredLots: 'products.stock.expiredLots',
   stockAutoDeduct: 'products.stock.autoDeduct',
+  pricingDefaultMargin: 'products.pricing.defaultMargin',
 } as const;
 
 /** Valores por defecto (los mismos del manifest). */
@@ -58,6 +62,7 @@ export const SETTING_DEFAULTS = {
   'products.stock.alertDays': 30,
   'products.stock.expiredLots': 'block',
   'products.stock.autoDeduct': true,
+  'products.pricing.defaultMargin': 0,
 } as const;
 
 const COERCE: {
@@ -67,6 +72,7 @@ const COERCE: {
   'products.stock.expiredLots': (values) =>
     toEnum(values['products.stock.expiredLots'], ['block', 'warn'], 'block'),
   'products.stock.autoDeduct': (values) => toBool(values['products.stock.autoDeduct'], true),
+  'products.pricing.defaultMargin': (values) => toNum(values['products.pricing.defaultMargin'], 0),
 };
 
 /** Lee UNA setting tipada desde los valores crudos del tenant (para handlers). */
@@ -83,6 +89,7 @@ export function readProductsSettings(values: Record<string, unknown>): ProductsS
     stockAlertDays: COERCE['products.stock.alertDays'](values),
     stockExpiredLots: COERCE['products.stock.expiredLots'](values),
     stockAutoDeduct: COERCE['products.stock.autoDeduct'](values),
+    pricingDefaultMargin: COERCE['products.pricing.defaultMargin'](values),
   };
 }
 

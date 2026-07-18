@@ -40,6 +40,13 @@
           "label": "Stock y vencimientos",
           "icon": "Boxes",
           "order": 10
+        },
+        {
+          "id": "products.pricing",
+          "group": "products",
+          "label": "Precios",
+          "icon": "DollarSign",
+          "order": 20
         }
       ],
       "sections": [
@@ -86,6 +93,30 @@
               "description": "Al registrar el uso de un producto (medicación en consulta, venta o receta), descontar su stock de los lotes.",
               "default": true,
               "tags": ["stock", "descontar", "automatico", "deduct"]
+            }
+          ]
+        },
+        {
+          "id": "products.pricing.margin",
+          "page": "products.pricing",
+          "label": "Márgenes",
+          "order": 10,
+          "items": [
+            {
+              "key": "products.pricing.defaultMargin",
+              "type": "number",
+              "label": "Margen por defecto (%)",
+              "description": "Margen que se aplica sobre el precio de compra para sugerir el precio de venta al cargar un producto. Ej.: costo $100 con margen 50% sugiere $150. 0 = no sugerir precio de venta.",
+              "default": 0,
+              "min": 0,
+              "max": 1000,
+              "tags": [
+                "products",
+                "pricing",
+                "defaultmargin",
+                "margen",
+                "defecto"
+              ]
             }
           ]
         }
