@@ -35,6 +35,27 @@ export interface BatchesViewProps {
   /** Subtítulo opcional bajo el título. */
   subtitle?: string;
   /**
+   * Etiqueta de la acción de alta manual de lote (botones de header/grupo/empty state y
+   * título del diálogo). Default: 'Cargar lote'. Un kit donde el alta manual NO es la vía
+   * principal de abastecimiento (la compra va por otro flujo) puede matizarla, ej.
+   * 'Ingreso manual'. Solo cambia el texto: la acción sigue siendo el alta de lote.
+   */
+  createLabel?: string;
+  /**
+   * Aviso opcional arriba del formulario de alta manual (no en edición), para encauzar al
+   * usuario al flujo correcto cuando el alta de lote no es la vía principal de abastecimiento.
+   * products es genérico y no sabe de "compras": el kit provee el texto y, opcionalmente, un
+   * destino de navegación (ej. el drawer de Compra de purchases), que se abre con views.open.
+   */
+  createHint?: {
+    /** Título del aviso, ej. '¿Estás registrando una compra?'. Opcional. */
+    title?: string;
+    /** Cuerpo del aviso: cuándo usar cada flujo. */
+    description: string;
+    /** Botón que navega a otra vista (ej. abrir el drawer de Compra). Opcional. */
+    action?: { label: string; viewId: string; params?: Record<string, unknown> };
+  };
+  /**
    * Resuelve el nombre del proveedor por id, para el origen del lote en el detalle
    * (inyectado por el integrador; ej. purchases.suppliers). Opcional.
    */

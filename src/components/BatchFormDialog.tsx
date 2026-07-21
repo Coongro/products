@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-import { getHostReact, getHostUI, actions } from '@coongro/plugin-sdk';
+import { getHostReact, getHostUI, actions, views } from '@coongro/plugin-sdk';
 
 import { daysUntil } from './batch-status.js';
 
@@ -67,6 +67,14 @@ interface BatchFormDialogProps {
    * El form lo muestra fijo y oculta el selector — versión simplificada del alta.
    */
   lockedProduct?: { productId: string; name: string } | null;
+  /** Etiqueta de la acción de alta (título/eyebrow del diálogo). Default: 'Cargar lote'. */
+  createLabel?: string;
+  /** Aviso opcional arriba del form de alta (no en edición). Ver BatchesViewProps.createHint. */
+  createHint?: {
+    title?: string;
+    description: string;
+    action?: { label: string; viewId: string; params?: Record<string, unknown> };
+  };
 }
 
 interface FormState {
@@ -126,7 +134,18 @@ function validate(form: FormState): Record<string, string> {
 }
 
 export function BatchFormDialog(props: BatchFormDialogProps) {
-  const { open, onClose, onSuccess, products, batch, onSubmit, DateField, lockedProduct } = props;
+  const {
+    open,
+    onClose,
+    onSuccess,
+    products,
+    batch,
+    onSubmit,
+    DateField,
+    lockedProduct,
+    createLabel = 'Cargar lote',
+    createHint,
+  } = props;
 
   const isEditing = !!batch;
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
@@ -255,8 +274,8 @@ export function BatchFormDialog(props: BatchFormDialogProps) {
   return h(UI.FormDialogSubmit, {
     open,
     onOpenChange: (val: boolean) => !val && onClose(),
-    title: isEditing ? 'Editar lote' : 'Cargar lote',
-    eyebrow: isEditing ? 'EDITAR LOTE' : 'NUEVO LOTE',
+    title: isEditing ? 'Editar lote' : createLabel,
+    eyebrow: isEditing ? 'EDITAR LOTE' : createLabel.toUpperCase(),
     subtitle: isEditing
       ? 'Actualizá los datos del lote.'
       : 'Registrá un lote que recibís en el inventario.',
@@ -266,6 +285,67 @@ export function BatchFormDialog(props: BatchFormDialogProps) {
     disabled: !isValid || saving,
     children: ({ formRef, onSavingChange }: any) => {
       savingChangeRef.current = onSavingChange;
+
+      // Aviso de encauzamiento (solo en alta): el kit puede sugerir el flujo correcto
+      // cuando el alta manual no es la vía principal de abastecimiento. products no sabe
+      // a dónde lleva — el destino (ej. drawer de Compra) lo provee el integrador.
+      const hintAction = createHint?.action;
+      const hintBanner =
+        !isEditing && createHint
+          ? h(
+              'div',
+              {
+                className:
+                  'flex flex-col gap-3 rounded-lg border border-cg-info-border bg-cg-info-bg px-3.5 py-3',
+              },
+              // Cabecera: ícono + texto (el botón va aparte, a lo ancho del recuadro).
+              h(
+                'div',
+                { className: 'flex items-start gap-3' },
+                h(UI.DynamicIcon, {
+                  icon: 'ShoppingCart',
+                  size: 16,
+                  className: 'mt-0.5 shrink-0 text-cg-sky-deep',
+                } as any),
+                h(
+                  'div',
+                  { className: 'flex flex-col gap-1 min-w-0' },
+                  createHint.title
+                    ? h(
+                        'div',
+                        { className: 'text-sm font-semibold text-cg-text' },
+                        createHint.title
+                      )
+                    : null,
+                  h(
+                    'div',
+                    { className: 'text-xs text-cg-text-muted leading-relaxed' },
+                    createHint.description
+                  )
+                )
+              ),
+              // Botón a lo ancho del recuadro (márgenes simétricos), contenido centrado.
+              hintAction
+                ? h(
+                    UI.Button,
+                    {
+                      type: 'button',
+                      variant: 'outline',
+                      size: 'xs',
+                      className: 'w-full justify-center',
+                      onClick: () => {
+                        // Cerrar el diálogo antes de navegar para no dejarlo montado detrás.
+                        onClose();
+                        views.open(hintAction.viewId, hintAction.params);
+                      },
+                    } as any,
+                    h(UI.DynamicIcon, { icon: 'ArrowRight', size: 13, className: 'mr-1' } as any),
+                    hintAction.label
+                  )
+                : null
+            )
+          : null;
+
       return h(
         'form',
         {
@@ -276,6 +356,8 @@ export function BatchFormDialog(props: BatchFormDialogProps) {
           },
           className: 'flex flex-col gap-4',
         },
+
+        hintBanner,
 
         // === Producto ===
         h(
