@@ -79,6 +79,8 @@ export function BatchesView(props: BatchesViewProps) {
     classifiers,
     title = 'Lotes',
     subtitle,
+    createLabel = 'Cargar lote',
+    createHint,
     resolveSupplier,
     resolveReference,
     resolveProductSubtitle,
@@ -463,7 +465,7 @@ export function BatchesView(props: BatchesViewProps) {
             },
           } as any,
           h(UI.DynamicIcon, { icon: 'Plus', size: 12 } as any),
-          ' Cargar lote'
+          ` ${createLabel}`
         )
       )
     );
@@ -817,7 +819,7 @@ export function BatchesView(props: BatchesViewProps) {
             },
           } as any,
           h(UI.DynamicIcon, { icon: 'Plus', size: 14 } as any),
-          ' Cargar lote'
+          ` ${createLabel}`
         )
       ),
 
@@ -865,7 +867,7 @@ export function BatchesView(props: BatchesViewProps) {
                   setShowForm(true);
                 },
               } as any,
-              '+ Cargar lote'
+              `+ ${createLabel}`
             ),
             filteredTitle: 'No se encontraron lotes con los filtros aplicados',
             filteredDescription: 'Probá cambiar los filtros o la búsqueda.',
@@ -893,6 +895,8 @@ export function BatchesView(props: BatchesViewProps) {
       lockedProduct,
       onSubmit: editing ? handleUpdate : handleCreate,
       DateField,
+      createLabel,
+      createHint,
     }),
 
     // Detalle del lote (trazabilidad: origen + consumos)
