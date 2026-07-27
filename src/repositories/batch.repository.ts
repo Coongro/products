@@ -214,8 +214,8 @@ export class BatchRepository {
   async previewConsume(params: ConsumeParams): Promise<BatchConsumePlanItem[]> {
     const needed = Number(params.quantity);
     if (!Number.isFinite(needed) || needed <= 0) return [];
-    const targets = await this.resolveTargets(params);
-    return this.planConsumption(targets, needed);
+    const targets = await this._resolveTargets(params);
+    return this._planConsumption(targets, needed);
   }
 
   /**
@@ -239,15 +239,15 @@ export class BatchRepository {
       return { consumed: 0, batches: [], shortfall: 0 };
     }
 
-    const targets = await this.resolveTargets(params);
-    const plan = this.planConsumption(targets, needed);
+    const targets = await this._resolveTargets(params);
+    const plan = this._planConsumption(targets, needed);
     const byId = new Map(targets.map((b) => [b.id, b]));
     const touched: ConsumedBatch[] = [];
 
     for (const item of plan) {
       const batch = byId.get(item.batchId);
       if (!batch) continue;
-      await this.consumeOneAtomic(params, batch, item.toConsume);
+      await this._consumeOneAtomic(params, batch, item.toConsume);
       touched.push({
         batchId: batch.id,
         batchNumber: batch.batch_number,
@@ -267,8 +267,14 @@ export class BatchRepository {
    * van en UN `ormQuery` — que ya corre dentro de una transacción con el
    * search_path del tenant — así un fallo a mitad revierte todo (atomicidad) sin
    * anidar transacciones (lo que rompería el search_path, COONG-136).
+   *
+   * Prefijo `_`: el auto-wire del runtime registra como acción RPC todo método del
+   * prototipo salvo el constructor y los que empiezan con `_`. El `private` de TS se
+   * borra al compilar, así que no basta. Importa acá porque este método ESCRIBE stock
+   * con el `take` que reciba: la disponibilidad y el FIFO los calcula `consume` antes
+   * de llamarlo, así que invocarlo suelto saltea esos guardas (COONG-268).
    */
-  private async consumeOneAtomic(
+  private async _consumeOneAtomic(
     params: ConsumeParams,
     batch: BatchRow,
     take: number
@@ -303,7 +309,7 @@ export class BatchRepository {
   }
 
   /** Lotes objetivo del consumo: el puntual (manual) o todos los disponibles (FIFO). */
-  private async resolveTargets(params: ConsumeParams): Promise<BatchRow[]> {
+  private async _resolveTargets(params: ConsumeParams): Promise<BatchRow[]> {
     const allowExpired = params.allowExpired ?? false;
     if (params.batchId) {
       const batch = await this.getById({ id: params.batchId });
@@ -317,7 +323,7 @@ export class BatchRepository {
   }
 
   /** Reparte `needed` entre los lotes en orden (cascada), sin modificar nada. */
-  private planConsumption(targets: BatchRow[], needed: number): BatchConsumePlanItem[] {
+  private _planConsumption(targets: BatchRow[], needed: number): BatchConsumePlanItem[] {
     const plan: BatchConsumePlanItem[] = [];
     let remaining = needed;
     for (const batch of targets) {
