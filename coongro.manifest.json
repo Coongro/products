@@ -8,27 +8,92 @@
       {
         "module": "./dist/repositories/category.repository.js",
         "export": "CategoryRepository",
-        "prefix": "products.categories"
+        "prefix": "products.categories",
+        "actions": [
+          "list",
+          "getById",
+          "create",
+          "update",
+          "delete",
+          "softDelete",
+          "restore",
+          "search",
+          "listTree",
+          "listByParent",
+          "countProducts"
+        ]
       },
       {
         "module": "./dist/repositories/product.repository.js",
         "export": "ProductRepository",
-        "prefix": "products.items"
+        "prefix": "products.items",
+        "actions": [
+          "list",
+          "getById",
+          "create",
+          "update",
+          "delete",
+          "softDelete",
+          "restore",
+          "search",
+          "findBySku",
+          "findByBarcode",
+          "listByCategory",
+          "listLowStock",
+          "countByCategory",
+          "adjustStock"
+        ]
       },
       {
         "module": "./dist/repositories/variant.repository.js",
         "export": "VariantRepository",
-        "prefix": "products.variants"
+        "prefix": "products.variants",
+        "actions": [
+          "list",
+          "getById",
+          "create",
+          "update",
+          "delete",
+          "softDelete",
+          "restore",
+          "listByProduct",
+          "findBySku",
+          "findByBarcode"
+        ]
       },
       {
         "module": "./dist/repositories/stock-movement.repository.js",
         "export": "StockMovementRepository",
-        "prefix": "products.stock"
+        "prefix": "products.stock",
+        "actions": [
+          "list",
+          "getById",
+          "create",
+          "listByProduct",
+          "listByVariant",
+          "listByBatch",
+          "consumedByBatch",
+          "getBalance",
+          "getSummary"
+        ]
       },
       {
         "module": "./dist/repositories/batch.repository.js",
         "export": "BatchRepository",
-        "prefix": "products.batches"
+        "prefix": "products.batches",
+        "actions": [
+          "list",
+          "getById",
+          "create",
+          "update",
+          "delete",
+          "listByProduct",
+          "listAvailable",
+          "previewConsume",
+          "consume",
+          "getExpiringSoon",
+          "getExpired"
+        ]
       }
     ],
     "settings": {
